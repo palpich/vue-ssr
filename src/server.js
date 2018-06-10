@@ -1,29 +1,26 @@
-const Vue = require('vue')
 const server = require('express')()
+const createApp = require('./entry-server')
 const renderer = require('vue-server-renderer').createRenderer({
   template: require('fs').readFileSync(__dirname + '/template.html', 'utf-8')
 })
 
-const context = {
-  title: 'Helllofff'
-
-}
 server.get('*', (req, res) => {
-  const app = new Vue({
-    data: {
-      url: req.url
-    },
-    template: '<div>Hello World. {{ url }}</div>'
-  })
+  // Вот тут создается контекст нашего приложения
+  const context = {
+    title: 'Helllofff',
+    url: req.url
+  }
 
-  renderer.renderToString(app, context)
-  .then(html => {
-    res.end(html)
-  })
-  .catch(error => {
-    console.log(error)
-    res.status(500).end('Внутренняя ошибка сервера')
-    return
+  createApp(context).then(app => {
+    renderer.renderToString(app, context)
+    .then(html => {
+      res.end(html)
+    })
+    .catch(error => {
+      console.log(error)
+      res.status(500).end('Внутренняя ошибка сервера')
+      return
+    })
   })
 })
 
